@@ -15,4 +15,21 @@ endif()
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_definitions("DEBUG")
 endif()
+
+set(src 
+    )
+
+set(hdrs
+    src/sim/ifc_observer.h
+  )
 include_directories(src)
+add_executable(${CMAKE_PROJECT_NAME} ${src} ${hdrs})
+
+target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE 
+  -Wall -Wextra -Wpedantic
+  $<$<CONFIG:Debug>:-g;-O0;-fsanitize=address,undefined;-Wfloat-equal;-fno-omit-frame-pointer>
+  $<$<CONFIG:Release>:-O3;-march=native;-DNDEBUG>)
+
+if(CMAKE_BUILD_TYPE MATCHES "Debug")
+  target_link_options(${CMAKE_PROJECT_NAME} BEFORE PUBLIC -fsanitize=undefined PUBLIC -fsanitize=address)
+endif()

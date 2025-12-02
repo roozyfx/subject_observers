@@ -1,0 +1,15 @@
+edition = "2023";
+
+package fx;
+
+message Data3d {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+}
+
+message Position {
+    uint64 subject_id       = 1;
+    uint64 timestamp_ms     = 2;
+    Data3d position_m       = 3;
+}

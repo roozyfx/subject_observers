@@ -58,3 +58,5 @@ if(CMAKE_BUILD_TYPE MATCHES "Debug")
 endif()
 target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE pthread protobuf::libprotobuf)
 
+enable_testing() 
+add_subdirectory(tests) 

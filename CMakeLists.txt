@@ -22,6 +22,7 @@ set(src
 
 set(hdrs
     src/sim/ifc_observer.h
+    src/utils/rng.h
     src/utils/vectormath.h
   )
 

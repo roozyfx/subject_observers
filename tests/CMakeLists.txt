@@ -20,3 +20,4 @@ MACRO(add_test test_name)
 ENDMACRO()
 
 add_test(vector_arithmetic_test)
+add_test(rng_test)

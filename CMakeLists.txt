@@ -21,8 +21,11 @@ set(src
 
 set(hdrs
     src/sim/ifc_observer.h
+    src/utils/vectormath.h
   )
+
 include_directories(src)
+
 add_executable(${CMAKE_PROJECT_NAME} ${src} ${hdrs})
 
 target_compile_options(${CMAKE_PROJECT_NAME} PRIVATE 

@@ -3,6 +3,8 @@
 #include <toml++/toml.hpp>
 #include <unordered_map>
 
+namespace fx {
+template <std::floating_point T = float>
 class Config {
  private:
   Config() = default;
@@ -17,10 +19,10 @@ class Config {
     return instance;
   }
 
-  std::unordered_map<std::string_view, float> values_;
+  std::unordered_map<std::string_view, T> values_;
 
  public:
-  static std::unordered_map<std::string_view, float>& GetValues() {
+  static std::unordered_map<std::string_view, T>& GetValues() {
     Config::GetConfig().ParseToml();
     [[maybe_unused]] volatile char dummy{'0'};
     return Config::GetConfig().values_;
@@ -28,3 +30,7 @@ class Config {
 
   void ParseToml(std::string_view config_file = "configuration.toml");
 };
+}  // namespace fx
+
+template class fx::Config<float>;
+template class fx::Config<double>;

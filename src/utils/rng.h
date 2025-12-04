@@ -50,12 +50,8 @@ class RNG {
 
       // Transform 'uint' gen_ to T using dis_i
       value = T(dis[0](gen_), dis[1](gen_), dis[2](gen_));
-    } else if constexpr (std::is_floating_point_v<T>) {  // simple floating
-                                                         // point
-                                                         // number
-      // if low and high are given
-      // in the wrong order, swap
-      // them
+    } else if constexpr (std::is_floating_point_v<T>) {  // simple floating point number
+      // if low and high are given in the wrong order, swap them
       uniform_real_distribution<T> dis(min(low, high), max(low, high));
       value = dis(gen_);
     }

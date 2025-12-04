@@ -4,3 +4,4 @@ y = [0, 120]
 z = [0.1, 2.5]
 top_speed = 12.5
 sample_frequency = 20
+measurement_noise = 0.3

@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.26...4.2)
 
-project(object_subjects)
+project(object_subjects VERSION 0.1.0
+                        DESCRIPTION "Subject-Observers Simulation"
+                        LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -27,10 +29,13 @@ FetchContent_MakeAvailable(tomlplusplus)
 
 set(src 
     src/main.cpp
+    src/utils/config.cpp
+    src/sim/player.cpp
     )
 
 set(hdrs
     src/sim/ifc_observer.h
+    src/sim/player.h
     src/utils/config.cpp
     
     src/utils/config.h

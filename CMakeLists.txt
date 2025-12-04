@@ -16,15 +16,29 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_definitions("DEBUG")
 endif()
 
+# TOML++ 
+include(FetchContent)
+FetchContent_Declare(
+    tomlplusplus
+    GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
+    GIT_TAG        v3.4.0
+)
+FetchContent_MakeAvailable(tomlplusplus)
+
 set(src 
     src/main.cpp
     )
 
 set(hdrs
     src/sim/ifc_observer.h
+    src/utils/config.cpp
+    
+    src/utils/config.h
     src/utils/rng.h
     src/utils/vectormath.h
   )
+
+file(COPY ${CMAKE_SOURCE_DIR}/configuration.toml DESTINATION ${CMAKE_BINARY_DIR})
 
 include_directories(src)
 
@@ -57,7 +71,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${PROTO_OUTPUT_DIR})
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
   target_link_options(${CMAKE_PROJECT_NAME} BEFORE PUBLIC -fsanitize=undefined PUBLIC -fsanitize=address)
 endif()
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE pthread protobuf::libprotobuf)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE pthread protobuf::libprotobuf tomlplusplus::tomlplusplus)
 
 enable_testing() 
 add_subdirectory(tests) 

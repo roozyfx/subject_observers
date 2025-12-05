@@ -31,12 +31,14 @@ set(src
     src/main.cpp
     src/utils/config.cpp
     src/sim/player.cpp
+    src/sim/sensor.cpp
     )
 
 set(hdrs
     src/sim/ifc_observer.h
     src/sim/player.h
     src/utils/config.cpp
+    src/sim/sensor.h
     
     src/utils/config.h
     src/utils/rng.h

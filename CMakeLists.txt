@@ -18,6 +18,8 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
   add_compile_definitions("DEBUG")
 endif()
 
+find_package(cppzmq REQUIRED)
+
 # TOML++ 
 include(FetchContent)
 FetchContent_Declare(
@@ -32,6 +34,7 @@ set(src
     src/utils/config.cpp
     src/sim/player.cpp
     src/sim/sensor.cpp
+    src/sim/simulation.cpp
     )
 
 set(hdrs
@@ -39,6 +42,7 @@ set(hdrs
     src/sim/player.h
     src/utils/config.cpp
     src/sim/sensor.h
+    src/sim/simulation.h
     
     src/utils/config.h
     src/utils/rng.h
@@ -78,7 +82,7 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE ${PROTO_OUTPUT_DIR})
 if(CMAKE_BUILD_TYPE MATCHES "Debug")
   target_link_options(${CMAKE_PROJECT_NAME} BEFORE PUBLIC -fsanitize=undefined PUBLIC -fsanitize=address)
 endif()
-target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE pthread protobuf::libprotobuf tomlplusplus::tomlplusplus)
+target_link_libraries(${CMAKE_PROJECT_NAME} PRIVATE pthread protobuf::libprotobuf tomlplusplus::tomlplusplus cppzmq)
 
 enable_testing() 
 add_subdirectory(tests) 

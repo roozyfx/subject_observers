@@ -13,4 +13,8 @@ void fx::Config<T>::ParseToml(std::string_view config_file) {
   Config::GetConfig().values_["top_speed"] = config["dimensions"]["top_speed"].value_or(T(12.5));
   Config::GetConfig().values_["sample_frequency"] = config["dimensions"]["sample_frequency"].value_or(T(20));
   Config::GetConfig().values_["measurement_noise"] = config["dimensions"]["measurement_noise"].value_or(T(0.3));
+  Config::GetConfig().values_["number_sensors"] = config["dimensions"]["number_sensors"].value_or(size_t(30));
 }
+
+template class fx::Config<float>;
+template class fx::Config<double>;

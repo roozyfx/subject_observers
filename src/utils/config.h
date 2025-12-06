@@ -31,6 +31,3 @@ class Config {
   void ParseToml(std::string_view config_file = "configuration.toml");
 };
 }  // namespace fx
-
-template class fx::Config<float>;
-template class fx::Config<double>;

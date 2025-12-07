@@ -11,6 +11,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(BUILD_TESTING "Build tests" ON)
 
 add_subdirectory(src)
+add_subdirectory(apps)
 
 include_directories(${CMAKE_BINARY_DIR}/protobuf)
 

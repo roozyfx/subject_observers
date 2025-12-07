@@ -2,7 +2,7 @@
 #include <memory>
 #include <thread>
 
-#include "simulation.h"
+#include "sim/simulation.h"
 #include "utils/vectormath.h"
 
 namespace fx {

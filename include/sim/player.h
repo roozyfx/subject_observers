@@ -17,7 +17,7 @@
 #include <mutex>
 
 #include "ifc_observer.h"
-#include "position.pb.h"
+// #include "position.pb.h"
 #include "utils/config.h"
 #include "utils/rng.h"
 #include "utils/vectormath.h"

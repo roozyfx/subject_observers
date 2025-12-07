@@ -1,6 +1,5 @@
 #pragma once
 #include <string_view>
-#include <toml++/toml.hpp>
 #include <unordered_map>
 
 namespace fx {

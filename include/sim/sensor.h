@@ -8,11 +8,9 @@
  */
 #pragma once
 
-#include <algorithm>
 #include <chrono>
 #include <concepts>
 #include <mutex>
-#include <print>
 
 #include "ifc_observer.h"
 #include "position.pb.h"

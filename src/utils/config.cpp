@@ -1,4 +1,6 @@
-#include "config.h"
+#include <toml++/toml.hpp>
+
+#include "utils/config.h"
 
 template <std::floating_point T>
 void fx::Config<T>::ParseToml(std::string_view config_file) {

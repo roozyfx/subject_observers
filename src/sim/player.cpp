@@ -1,4 +1,6 @@
-#include "player.h"
+#include <iostream>
+
+#include "sim/player.h"
 
 template <std::floating_point T>
 fx::Player<T>::Player() : mutex_{}, observers_{}, p_{Point(T(0), T(0), T(0))}, rng_{}, configurations_{Config<T>::GetValues()} {

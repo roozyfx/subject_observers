@@ -1,4 +1,7 @@
-#include "sensor.h"
+#include <algorithm>
+#include <print>
+
+#include "sim/sensor.h"
 
 template <std::floating_point T>
 void fx::Sensor<T>::AddMeasurementNoise() {

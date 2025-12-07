@@ -1,9 +1,9 @@
-#include "utils/rng.h"
-
 #include <gtest/gtest.h>
 
 #include <cmath>
 #include <type_traits>
+
+#include "utils/rng.h"
 
 TEST(RNGConceptTest, AcceptableTypeTrait) {
   // Scalar floating point should be acceptable

@@ -1,16 +1,5 @@
 set(PROJECT_LIBRARY_NAME subject_observers)
 
-# TODO Add checks for Windows
-if(CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ ")
-elseif(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-  # set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -Weffc++")
-endif()
-
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-  add_compile_definitions("DEBUG")
-endif()
-
 set(src 
     utils/config.cpp
     sim/player.cpp
@@ -18,8 +7,52 @@ set(src
     sim/simulation.cpp
     )
 
-# Copy configuration file to build directory
-file(COPY ${CMAKE_SOURCE_DIR}/configuration.toml DESTINATION ${CMAKE_BINARY_DIR})
+add_library(${PROJECT_LIBRARY_NAME} STATIC ${src})
+
+target_include_directories(${PROJECT_LIBRARY_NAME} PUBLIC ${CMAKE_SOURCE_DIR}/include)
+
+# Linux and macOS
+if(CMAKE_SYSTEM_NAME MATCHES Linux OR CMAKE_SYSTEM_NAME MATCHES Darwin)
+    target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE
+        $<$<CONFIG:Debug>:-g;-O0;-fsanitize=address,undefined;-Wfloat-equal;-fno-omit-frame-pointer>
+        $<$<CONFIG:Release>:-O3;-march=native>
+    )
+    # GCC
+    if(CMAKE_CXX_COMPILER_ID MATCHES GNU)
+        target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE
+            -Wall -Wextra -Wpedantic
+        )
+        # Clang
+    elseif(CMAKE_CXX_COMPILER_ID MATCHES Clang OR CMAKE_CXX_COMPILER_ID MATCHES AppleClang)
+        target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE
+            -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-weak-vtables -Wno-c++20-extensions -Wno-padded
+            # TODO remove and fix warnings
+            -Wno-unsafe-buffer-usage
+        )
+    endif()
+
+    target_link_options(${PROJECT_LIBRARY_NAME} PUBLIC
+        $<$<CONFIG:Debug>:-fsanitize=address,undefined>
+    )
+
+    # Windows branch
+elseif(CMAKE_SYSTEM_NAME MATCHES Windows)
+    target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE
+        /W4 /permissive-
+        $<$<CONFIG:Debug>:/Od;/Zi;/fsanitize=address>
+        $<$<CONFIG:Release>:/O2;/DNDEBUG>
+    )
+
+    target_link_options(${PROJECT_LIBRARY_NAME} PUBLIC
+        # MSVC AddressSanitizer requires incremental linking to be disabled
+        $<$<CONFIG:Debug>:/INCREMENTAL:NO>
+    )
+endif()
+
+target_compile_definitions(${PROJECT_LIBRARY_NAME} PRIVATE
+    $<$<CONFIG:Debug>:-DDEBUG>
+    $<$<CONFIG:Release>:-DNDEBUG>
+)
 
 # Find dependencies
 # 0MQ
@@ -30,11 +63,9 @@ include(FetchContent)
 FetchContent_Declare(
     tomlplusplus
     GIT_REPOSITORY https://github.com/marzer/tomlplusplus.git
-    GIT_TAG        v3.4.0
+    GIT_TAG v3.4.0
 )
 FetchContent_MakeAvailable(tomlplusplus)
-
-add_library(${PROJECT_LIBRARY_NAME} STATIC ${src})
 
 target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE 
     -Wall -Wextra -Wpedantic

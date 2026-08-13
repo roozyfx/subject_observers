@@ -1,11 +1,11 @@
 set(PROJECT_LIBRARY_NAME subject_observers)
 
-set(src 
+set(src
     utils/config.cpp
     sim/player.cpp
     sim/sensor.cpp
     sim/simulation.cpp
-    )
+)
 
 add_library(${PROJECT_LIBRARY_NAME} STATIC ${src})
 
@@ -67,7 +67,7 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(tomlplusplus)
 
-target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE 
+target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE
     -Wall -Wextra -Wpedantic
     $<$<CONFIG:Debug>:-g;-O0;-fsanitize=address,undefined;-Wfloat-equal;-fno-omit-frame-pointer>
     $<$<CONFIG:Release>:-O3;-march=native;-DNDEBUG>)
@@ -78,23 +78,25 @@ find_package(Protobuf)
 unset(CMAKE_FIND_PACKAGE_PREFER_CONFIG)
 
 if(Protobuf_FOUND)
-set(PROTO_OUTPUT_DIR ${CMAKE_BINARY_DIR}/protobuf)
-file(MAKE_DIRECTORY ${PROTO_OUTPUT_DIR})
+    set(PROTO_OUTPUT_DIR ${CMAKE_BINARY_DIR}/protobuf)
+    file(MAKE_DIRECTORY ${PROTO_OUTPUT_DIR})
 
-protobuf_generate(
-    TARGET ${PROJECT_LIBRARY_NAME}
-    LANGUAGE cpp
-    PROTOC_OUT_DIR ${PROTO_OUTPUT_DIR}
-    IMPORT_DIRS protobuf 
-    PROTOS 
-    protobuf/position.proto
+    protobuf_generate(
+        TARGET ${PROJECT_LIBRARY_NAME}
+        LANGUAGE cpp
+        PROTOC_OUT_DIR ${PROTO_OUTPUT_DIR}
+        IMPORT_DIRS protobuf
+        PROTOS
+        protobuf/position.proto
     )
 endif()
-    
-target_include_directories(${PROJECT_LIBRARY_NAME} PUBLIC ${PROTO_OUTPUT_DIR} ../include)
 
-if(CMAKE_BUILD_TYPE MATCHES "Debug")
-    target_link_options(${PROJECT_LIBRARY_NAME} BEFORE PUBLIC -fsanitize=undefined PUBLIC -fsanitize=address)
-endif()
+# Generated .pb.cc/.pb.h land in the binary dir, so make them discoverable
+target_include_directories(${PROJECT_LIBRARY_NAME} PUBLIC ${PROTO_OUTPUT_DIR} ${CMAKE_SOURCE_DIR}/include)
 
-target_link_libraries(${PROJECT_LIBRARY_NAME} PUBLIC pthread protobuf::libprotobuf tomlplusplus::tomlplusplus cppzmq)
+target_link_options(${PROJECT_LIBRARY_NAME} BEFORE PUBLIC
+    $<$<CONFIG:Debug>:-fsanitize=address,undefined>
+)
+
+target_link_libraries(${PROJECT_LIBRARY_NAME} PRIVATE Threads::Threads tomlplusplus::tomlplusplus cppzmq)
+target_link_libraries(${PROJECT_LIBRARY_NAME} PUBLIC protobuf::libprotobuf)

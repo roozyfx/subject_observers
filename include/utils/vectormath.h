@@ -12,8 +12,11 @@ struct Tuple {
   T x{}, y{}, z{};
 
   Tuple() = default;
-  Tuple(const T& x, const T& y, const T& z) : x{x}, y{y}, z{z} {}
+  Tuple(const T& xx, const T& yy, const T& zz) : x{xx}, y{yy}, z{zz} {}
+
   virtual ~Tuple() = default;
+
+  Tuple& operator=(const Tuple&) = default;
 
   bool operator==(const Child<T>&) const = delete;
 
@@ -82,12 +85,14 @@ struct Vector : public Tuple<Vector, T> {
   using Tuple<Vector, T>::z;
 
   Vector() = default;
-  Vector(const T x, const T y, const T z) : Tuple<Vector, T>(x, y, z) {}
+  Vector(const T xx, const T yy, const T zz) : Tuple<Vector, T>(xx, yy, zz) {}
   template <typename V>
   explicit Vector(const Vector<V>& v)
       : Tuple<Vector, T>(T(v.x), T(v.y), T(v.z)) {}
 
-  ~Vector() = default;
+  ~Vector() override = default;
+
+  Vector& operator=(const Vector&) = default;
 
   template <typename U>
   friend inline Vector<T> operator+(const Vector<T>& v, const Vector<U> u) {
@@ -102,7 +107,7 @@ struct Point : public Tuple<Point, T> {
   using Tuple<Point, T>::z;
 
   Point() { x = y = z = 0; }
-  Point(const T x, const T y, const T z) : Tuple<Point, T>(x, y, z) {}
+  Point(const T xx, const T yy, const T zz) : Tuple<Point, T>(xx, yy, zz) {}
 
   template <typename P>
   explicit Point(const Point<P>& p) : Tuple<Point, T>(T(p.x), T(p.y), T(p.z)) {}

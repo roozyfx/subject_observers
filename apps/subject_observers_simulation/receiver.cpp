@@ -7,19 +7,15 @@
 
 #include "position.pb.h"
 
-std::mutex m;
-
-void PrintPositionMessages(const fx::Position& pos_msg) {
-  m.lock();
+static void PrintPositionMessages(const fx::Position& pos_msg) {
   std::println("Sensor ID: {}\ttimestamp: {}", pos_msg.id(),
                pos_msg.timestamp_ms());
   std::println("Data3D: ({}, {}, {})", pos_msg.position_m().x(),
                pos_msg.position_m().y(), pos_msg.position_m().z());
-  m.unlock();
 }
 
-void SubscriberThread(zmq::context_t* ctx,
-                      std::string addr) {
+[[noreturn]] static void SubscriberThread(zmq::context_t* ctx,
+                                          std::string addr) {
   //  Prepare subscriber
   zmq::socket_t subscriber(*ctx, zmq::socket_type::sub);
   subscriber.connect(addr);
@@ -30,7 +26,14 @@ void SubscriberThread(zmq::context_t* ctx,
   while (true) {
     zmq::message_t recv_data;
     auto result = subscriber.recv(recv_data, zmq::recv_flags::none);
-    if (!result) continue;
+    if (!result) {
+      std::cerr << "Unsuccessful data reception\n";
+      continue;
+    }
+    if (recv_data.empty()) {
+      std::cerr << "Empty message\n";
+      continue;
+    }
 
     fx::Position recv_msg;
     bool ok = recv_msg.ParseFromArray(recv_data.data(),
@@ -49,7 +52,7 @@ int main() {
 
   // Give the publisher a chance to bind, since inproc requires it
   std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  std::string addr{"tcp://localhost:5656"};
+  std::string addr{"tcp://127.0.0.1:5656"};
   auto thread2 = std::async(std::launch::async, SubscriberThread, &ctx, addr);
   thread2.wait();
 

@@ -1,6 +1,7 @@
 /* A Templated Interface to Subject and Observer in the observer pattern.
  */
 #pragma once
+#include <concepts>
 #include <memory>
 
 namespace fx {

@@ -1,19 +1,23 @@
-#include <future>
+#include <exception>
+#include <iostream>
 #include <zmq_addon.hpp>
 
 #include "sim/player.h"
 #include "sim/simulation.h"
 
 int main() {
-  zmq::context_t ctx(1);
+  try {
+    zmq::context_t ctx(1);
 
-  fx::Player<float> pl;
-  fx::Simulation<float> sim(pl);
-  auto thread1 =
-      std::async(std::launch::async,
-                 &fx::Simulation<float>::Simulate, &sim, &ctx);
+    fx::Player<float> pl{};
+    fx::Simulation<float> sim(pl);
 
-  thread1.wait();
-
-  return 0;
+    sim.StartSimulation(&ctx);
+    // Rethrow the exception from a failure
+    sim.Wait();
+  } catch (const std::exception& e) {
+    std::cerr << e.what();
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
 }

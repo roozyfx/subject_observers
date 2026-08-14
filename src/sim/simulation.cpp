@@ -67,8 +67,8 @@ void Simulation<T>::RunSimulation(zmq::context_t* ctx, std::stop_token stoken) {
                                    zmq::send_flags::none);
         }
       }
-      std::this_thread::sleep_for(std::chrono::duration<T>(player_.delta_t()));
     }
+    std::this_thread::sleep_for(std::chrono::duration<T>(player_.delta_t()));
   }
 }
 

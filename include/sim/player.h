@@ -31,10 +31,6 @@ class Player : public ISubject<Point<T>, T> {
   Player();
   ~Player() override = default;
 
-  // As an alternative to the random location during construction, set player's
-  // initial location
-  inline void SetInitialLocation(const Point<T>& p) { p_ = p; }
-
   void Update();
 
   inline void Register(IObs_shpt observer) final {
@@ -47,24 +43,29 @@ class Player : public ISubject<Point<T>, T> {
     observers_.remove(observer);
   }
 
+  inline T delta_t() { return d_t_; }
+
  private:
-  inline void Notify() const final {
+  inline void Notify() const final {}
+
+  void NotifyWith(const Point<T>& p) {
     std::list<IObs_shpt> snapshot;
-    Point<T> p;
     {
       lock_guard l(mutex_);
       snapshot = observers_;
-      p = p_;
     }
     for (auto& obs : snapshot)
       if (obs) obs->Measure(p);
+    Notify();
   }
 
   mutable std::mutex mutex_;
+  T top_speed_;
+  T sample_frequency_;
+  T d_t_;
   std::list<IObs_shpt> observers_;
   // Player's position
   Point<T> p_;
-  Vector<T> v_;
   // Random Number Generator for Vector
   RNG rng_;
   std::unordered_map<std::string_view, T> configurations_;

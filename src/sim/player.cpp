@@ -20,27 +20,30 @@ fx::Player<T>::Player()
   auto z_max{configurations_.at("z_max")};
   rng_.GenerateUniformRandom(p_, Point<T>(x_min, y_min, z_min),
                              Point<T>(x_max, y_max, z_max));
+
+  top_speed_ = T(configurations_.at("top_speed"));
+  sample_frequency_ = T(configurations_.at("sample_frequency"));
+  d_t_ = T(1) / sample_frequency_;
 }
 
 template <std::floating_point T>
 void fx::Player<T>::Update() {
   {
-    const T top_speed{T(configurations_.at("top_speed"))};
-    const T sample_frequency{T(configurations_.at("sample_frequency"))};
     Vector<T> v{};
-    // Player can move in 2D with a max speed of top_speed, or can stand still.
-    // It is assumed that z dimension represents the head of the player and the
-    // player can bend/dodge his/her head with a max speed of 1m/s
-    rng_.GenerateUniformRandom(v, Vector<T>(-top_speed, -top_speed, -T(1)),
-                               Vector<T>(top_speed, top_speed, T(1)));
-#ifdef DEBUG
-    std::cout << "generated velocity: " << v << std::endl;
-    std::cout << "player's location before update: " << p_ << std::endl;
-#endif
-    const T d_t{T(1) / sample_frequency};
+    Point<T> position;
+
     {
       lock_guard l(mutex_);
-      p_ += d_t * v;
+#ifdef DEBUG std::clog << "generated velocity: " << v << std::endl;
+      std::clog << "player's location before update: " << p_ << std::endl;
+#endif
+
+      // Player can move in 2D with a max speed of top_speed, or can stand
+      // still. It is assumed that z dimension represents the head of the player
+      // and the player can bend/dodge his/her head with a max speed of 1m/s
+      rng_.GenerateUniformRandom(v, Vector<T>(-top_speed_, -top_speed_, -T(1)),
+                                 Vector<T>(top_speed_, top_speed_, T(1)));
+      p_ += d_t_ * v;
       // Trim x and y values to the range (specified in the config file)
       p_.x = std::clamp(p_.x, T(configurations_.at("x_min")),
                         T(configurations_.at("x_max")));
@@ -48,13 +51,13 @@ void fx::Player<T>::Update() {
                         T(configurations_.at("y_max")));
       p_.z = std::clamp(p_.z, T(configurations_.at("z_min")),
                         T(configurations_.at("z_max")));
-    }
+      position = p_;
 #ifdef DEBUG
-    std::cout << "\t\t  after update:  " << p_ << std::endl;
+      std::clog << "\t\t  after update:  " << p_ << std::endl;
 #endif
+    }
+    NotifyWith(position);
   }
-
-  Notify();
 }
 
 template class fx::Player<float>;

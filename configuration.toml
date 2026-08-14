@@ -2,7 +2,8 @@
 x = [0, 90]
 y = [0, 120]
 z = [0.1, 2.5]
-top_speed = 12.5
-sample_frequency = 20
+top_speed = 12.5 # m/s
+sample_frequency = 20 # Hz
 measurement_noise = 0.3
 number_sensors = 30
+simulation_duration = 10 # seconds

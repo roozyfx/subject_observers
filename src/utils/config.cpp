@@ -16,6 +16,8 @@ void fx::Config<T>::ParseToml(std::string_view config_file) {
   Config::GetConfig().values_["sample_frequency"] = config["dimensions"]["sample_frequency"].value_or(T(20));
   Config::GetConfig().values_["measurement_noise"] = config["dimensions"]["measurement_noise"].value_or(T(0.3));
   Config::GetConfig().values_["number_sensors"] = config["dimensions"]["number_sensors"].value_or(size_t(30));
+  Config::GetConfig().values_["simulation_duration"] =
+      config["dimensions"]["simulation_duration"].value_or(T(60));
 }
 
 template class fx::Config<float>;

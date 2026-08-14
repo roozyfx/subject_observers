@@ -2,7 +2,6 @@
 #include <iostream>
 #include <print>
 #include <string>
-#include <thread>
 #include <zmq_addon.hpp>
 
 #include "position.pb.h"
@@ -48,13 +47,15 @@ static void PrintPositionMessages(const fx::Position& pos_msg) {
 }
 
 int main() {
-  zmq::context_t ctx(1);
+  try {
+    zmq::context_t ctx(1);
 
-  // Give the publisher a chance to bind, since inproc requires it
-  std::this_thread::sleep_for(std::chrono::milliseconds(50));
-  std::string addr{"tcp://127.0.0.1:5656"};
-  auto thread2 = std::async(std::launch::async, SubscriberThread, &ctx, addr);
-  thread2.wait();
-
-  return 0;
+    std::string addr{"tcp://127.0.0.1:5656"};
+    auto thread2 = std::async(std::launch::async, SubscriberThread, &ctx, addr);
+    thread2.get();
+  } catch (const std::exception& e) {
+    std::cerr << e.what();
+    return EXIT_FAILURE;
+  }
+  return EXIT_SUCCESS;
 }

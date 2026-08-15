@@ -10,6 +10,16 @@ Player --notify--> Sensors --protobuf--> ZMQ PUB ---> SUB --> receiver
 
 Everything is templated on the float type. Overkill for a demo, but I wanted the boilerplate for later.  
 
+## Dependencies
+
+- A C++23 compiler (tested with GCC 15 and Clang 21)
+- [CMake](https://cmake.org/)
+- [Ninja](https://ninja-build.org/)
+- [Google Protobuf](https://protobuf.dev/)
+- [ZeroMQ](https://zeromq.org/) (via [cppzmq](https://github.com/zeromq/cppzmq))
+- [tomlplusplus](https://marzer.github.io/tomlplusplus/) (via CMake `FetchContent`)
+- [GoogleTest](https://github.com/google/googletest) (via CMake `FetchContent`)
+
 ## Build
 Included presets are gcc15, clang-21, macOS clang and Windows, Debug and Release. Debug builds get ASan/UBSan.
 ```bash

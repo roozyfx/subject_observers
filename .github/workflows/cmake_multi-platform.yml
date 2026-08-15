@@ -1,0 +1,173 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CACHE_EPOCH: "2"
+  # Ubuntu still ships protobuf 3.21, so Linux builds it from source at this tag
+  PROTOBUF_VERSION: "35.1"
+  # protobuf/abseil are built without sanitizers, so the std::string/vector
+  # annotations our ASan-instrumented code emits have no counterpart there
+  ASAN_OPTIONS: detect_container_overflow=0
+
+jobs:
+  build:
+    name: ${{ matrix.config.name }} / ${{ matrix.build_type }}
+    runs-on: ${{ matrix.config.os }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
+        config:
+          - name: Linux GCC 15
+            os: ubuntu-26.04
+            preset: linux-gcc15
+            cc: gcc-15
+            cxx: g++-15
+          - name: Linux Clang 21
+            os: ubuntu-26.04
+            preset: linux-clang21
+            cc: clang-21
+            cxx: clang++-21
+          - name: macOS AppleClang 21
+            os: macos-26
+            preset: macos-clang
+            cc: clang
+            cxx: clang++
+          - name: Windows MSVC
+            os: windows-2025
+            preset: windows-msvc
+            cc: cl
+            cxx: cl
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Install CMake and Ninja
+        uses: lukka/get-cmake@latest
+
+      # Linux
+      - name: Install dependencies (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt update
+          sudo apt install -y --no-install-recommends \
+            g++-15 pkg-config ninja-build libzmq3-dev cppzmq-dev
+
+      # due to C++23 features, we need clang-21. Clang-22 is also available, but 21 is enough for now
+      - name: Install Clang 21 (Linux)
+        if: matrix.config.preset == 'linux-clang21'
+        run: |
+          sudo apt install -y --no-install-recommends clang-21
+
+      - name: Cache Protobuf (Linux)
+        if: runner.os == 'Linux'
+        id: cache-protobuf
+        uses: actions/cache@v4
+        with:
+          path: ~/protobuf-install
+          key: protobuf-${{ matrix.config.os }}-${{ matrix.config.cc }}-${{ env.PROTOBUF_VERSION }}-${{ env.CACHE_EPOCH }}
+
+      # apt only has protobuf 3.21, which predates the abseil-based CMake config we need
+      - name: Build Protobuf from source (Linux)
+        if: runner.os == 'Linux' && steps.cache-protobuf.outputs.cache-hit != 'true'
+        env:
+          CC: ${{ matrix.config.cc }}
+          CXX: ${{ matrix.config.cxx }}
+        run: |
+          git clone --depth 1 --branch "v${PROTOBUF_VERSION}" --recurse-submodules --shallow-submodules \
+            https://github.com/protocolbuffers/protobuf.git "$RUNNER_TEMP/protobuf"
+          cmake -S "$RUNNER_TEMP/protobuf" -B "$RUNNER_TEMP/protobuf/build" -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_INSTALL_PREFIX="$HOME/protobuf-install" \
+            -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
+            -DCMAKE_CXX_STANDARD=17 \
+            -Dprotobuf_BUILD_TESTS=OFF \
+            -Dprotobuf_BUILD_SHARED_LIBS=OFF \
+            -Dprotobuf_ABSL_PROVIDER=module
+          cmake --build "$RUNNER_TEMP/protobuf/build"
+          cmake --install "$RUNNER_TEMP/protobuf/build"
+
+      - name: Expose Protobuf to CMake (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          echo "CMAKE_PREFIX_PATH=$HOME/protobuf-install" >> "$GITHUB_ENV"
+          echo "$HOME/protobuf-install/bin" >> "$GITHUB_PATH"
+
+      # macOS
+      - name: Install dependencies (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install ninja cppzmq protobuf
+          echo "CMAKE_PREFIX_PATH=$(brew --prefix)" >> "$GITHUB_ENV"
+
+      # Windows
+      - name: Set up MSVC environment (Windows)
+        if: runner.os == 'Windows'
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Cache vcpkg binary packages (Windows)
+        if: runner.os == 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: ~/AppData/Local/vcpkg/archives
+          key: vcpkg-${{ runner.os }}-zmq-protobuf-${{ env.CACHE_EPOCH }}
+
+      - name: Install dependencies (Windows, vcpkg)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $vcpkg = $env:VCPKG_INSTALLATION_ROOT
+          & "$vcpkg\vcpkg.exe" install cppzmq:x64-windows protobuf:x64-windows
+          "VCPKG_ROOT=$($vcpkg -replace '\\', '/')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
+
+      #############################################
+      # The generated code and the runtime have to agree, and protobuf 3.x is
+      # far enough behind that a stale toolchain should fail loudly here
+      - name: Check Protobuf version
+        shell: bash
+        run: |
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            protoc="$VCPKG_ROOT/installed/x64-windows/tools/protobuf/protoc.exe"
+          else
+            protoc="$(command -v protoc)"
+          fi
+          "$protoc" --version
+          major=$("$protoc" --version | awk '{print $2}' | cut -d. -f1)
+          if [ "$major" -lt 33 ]; then
+            echo "::error::protoc $major is too old, need >= 33"
+            exit 1
+          fi
+
+      - name: Show toolchain versions
+        shell: bash
+        run: |
+          cmake --version
+          ninja --version
+          if [ "${{ runner.os }}" = "Windows" ]; then cl; else ${{ matrix.config.cxx }} --version; fi
+
+      - name: Configure
+        shell: bash
+        run: cmake --preset ${{ matrix.config.preset }}-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
+
+      - name: Build
+        shell: bash
+        run: cmake --build --preset ${{ matrix.config.preset }}-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}
+
+      - name: Test
+        shell: bash
+        run: ctest --preset ${{ matrix.config.preset }}-${{ matrix.build_type == 'Debug' && 'debug' || 'release' }}

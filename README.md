@@ -1,3 +1,5 @@
+[![CI](https://github.com/roozyfx/subject_observers/actions/workflows/cmake_multi-platform.yml/badge.svg)](https://github.com/roozyfx/subject_observers/actions/workflows/cmake_multi-platform.yml)  ![C++23](https://img.shields.io/badge/C%2B%2B-23-blue.svg?style=flat&logo=c%2B%2B&logoColor=white)   
+
 # Subject-Observers
 
 A C++23 project exploring a templated implementation of classic **Observer design pattern** together with **[Protocol Buffers](https://protobuf.dev/)** for message serialization and **[ZeroMQ](https://zeromq.org/)** for transport.

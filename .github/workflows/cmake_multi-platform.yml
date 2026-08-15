@@ -132,7 +132,7 @@ jobs:
         shell: pwsh
         run: |
           $vcpkg = $env:VCPKG_INSTALLATION_ROOT
-          & "$vcpkg\vcpkg.exe" install cppzmq:x64-windows protobuf:x64-windows
+          & "$vcpkg\vcpkg.exe" install cppzmq:x64-windows protobuf protobuf:x64-windows
           "VCPKG_ROOT=$($vcpkg -replace '\\', '/')" | Out-File -FilePath $env:GITHUB_ENV -Append -Encoding utf8
 
       #############################################

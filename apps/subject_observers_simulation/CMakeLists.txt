@@ -19,7 +19,7 @@ add_custom_target(CopyConfig
 add_dependencies(${GENERATOR_BINARY} CopyConfig)
 
 # Linux and macOS Branch
-if(CMAKE_SYSTEM_NAME MATCHES Linux)
+if(CMAKE_SYSTEM_NAME MATCHES Linux OR CMAKE_SYSTEM_NAME MATCHES Darwin)
     target_compile_options(${GENERATOR_BINARY} PRIVATE
         $<$<CONFIG:Debug>:-g;-O0;-fsanitize=address,undefined;-Wfloat-equal;-fno-omit-frame-pointer>
         $<$<CONFIG:Release>:-O3;-march=native>
@@ -34,7 +34,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Linux)
         target_compile_options(${GENERATOR_BINARY} PRIVATE
             -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-weak-vtables -Wno-c++20-extensions -Wno-padded
             # TODO remove and fix warnings
-            -Wno-unsafe-buffer-usage
+            # -Wno-unsafe-buffer-usage
         )
     endif()
     target_link_options(${GENERATOR_BINARY} PRIVATE
@@ -44,7 +44,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Linux)
 elseif(CMAKE_SYSTEM_NAME MATCHES Windows)
     target_compile_options(${GENERATOR_BINARY} PRIVATE
         /W4 /permissive-
-        $<$<CONFIG:Debug>:/Od;/Zi;/fsanitize=address>
+        $<$<CONFIG:Debug>:/Od;/Zi;/fsanitize=address,undefined>
         $<$<CONFIG:Release>:/O2;/DNDEBUG>
     )
 
@@ -61,7 +61,7 @@ add_executable(receiver receiver.cpp)
 
 
 # Linux and macOS Branch
-if(CMAKE_SYSTEM_NAME MATCHES Linux)
+if(CMAKE_SYSTEM_NAME MATCHES Linux OR CMAKE_SYSTEM_NAME MATCHES Darwin)
     target_compile_options(receiver PRIVATE
         $<$<CONFIG:Debug>:-g;-O0;-fsanitize=address,undefined;-Wfloat-equal;-fno-omit-frame-pointer>
         $<$<CONFIG:Release>:-O3;-march=native>
@@ -86,7 +86,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Linux)
 elseif(CMAKE_SYSTEM_NAME MATCHES Windows)
     target_compile_options(receiver PRIVATE
         /W4 /permissive-
-        $<$<CONFIG:Debug>:/Od;/Zi;/fsanitize=address>
+        $<$<CONFIG:Debug>:/Od;/Zi;/fsanitize=address,undefined>
         $<$<CONFIG:Release>:/O2;/DNDEBUG>
     )
 

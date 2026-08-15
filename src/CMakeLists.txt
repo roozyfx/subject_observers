@@ -26,8 +26,6 @@ if(CMAKE_SYSTEM_NAME MATCHES Linux OR CMAKE_SYSTEM_NAME MATCHES Darwin)
     elseif(CMAKE_CXX_COMPILER_ID MATCHES Clang OR CMAKE_CXX_COMPILER_ID MATCHES AppleClang)
         target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE
             -Weverything -Wno-c++98-compat -Wno-c++98-compat-pedantic -Wno-weak-vtables -Wno-c++20-extensions -Wno-padded
-            # TODO remove and fix warnings
-            -Wno-unsafe-buffer-usage
         )
     endif()
 
@@ -39,7 +37,7 @@ if(CMAKE_SYSTEM_NAME MATCHES Linux OR CMAKE_SYSTEM_NAME MATCHES Darwin)
 elseif(CMAKE_SYSTEM_NAME MATCHES Windows)
     target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE
         /W4 /permissive-
-        $<$<CONFIG:Debug>:/Od;/Zi;/fsanitize=address>
+        $<$<CONFIG:Debug>:/Od;/Zi;/fsanitize=address,undefined>
         $<$<CONFIG:Release>:/O2;/DNDEBUG>
     )
 
@@ -66,11 +64,6 @@ FetchContent_Declare(
     GIT_TAG v3.4.0
 )
 FetchContent_MakeAvailable(tomlplusplus)
-
-target_compile_options(${PROJECT_LIBRARY_NAME} PRIVATE
-    -Wall -Wextra -Wpedantic
-    $<$<CONFIG:Debug>:-g;-O0;-fsanitize=address,undefined;-Wfloat-equal;-fno-omit-frame-pointer>
-    $<$<CONFIG:Release>:-O3;-march=native;-DNDEBUG>)
 
 # First try to find user-compiled Protobuf, then system installation
 set(CMAKE_FIND_PACKAGE_PREFER_CONFIG TRUE)

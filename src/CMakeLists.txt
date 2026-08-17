@@ -19,10 +19,6 @@ target_compile_definitions(${PROJECT_LIBRARY_NAME} PRIVATE
     $<$<CONFIG:Release>:-DNDEBUG>
 )
 
-# Find dependencies
-# 0MQ
-find_package(cppzmq REQUIRED)
-
 # TOML++ 
 include(FetchContent)
 FetchContent_Declare(
@@ -58,5 +54,5 @@ target_link_options(${PROJECT_LIBRARY_NAME} BEFORE PUBLIC
     $<$<CONFIG:Debug>:-fsanitize=address,undefined>
 )
 
-target_link_libraries(${PROJECT_LIBRARY_NAME} PRIVATE Threads::Threads tomlplusplus::tomlplusplus cppzmq)
+target_link_libraries(${PROJECT_LIBRARY_NAME} PRIVATE Threads::Threads tomlplusplus::tomlplusplus)
 target_link_libraries(${PROJECT_LIBRARY_NAME} PUBLIC protobuf::libprotobuf)

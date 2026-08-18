@@ -41,9 +41,8 @@ if(Protobuf_FOUND)
         TARGET ${PROJECT_LIBRARY_NAME}
         LANGUAGE cpp
         PROTOC_OUT_DIR ${PROTO_OUTPUT_DIR}
-        IMPORT_DIRS protobuf
-        PROTOS
-        protobuf/position.proto
+        IMPORT_DIRS ${PROJECT_SOURCE_DIR}/protobuf
+        PROTOS ${PROJECT_SOURCE_DIR}/protobuf/position.proto
     )
 endif()
 

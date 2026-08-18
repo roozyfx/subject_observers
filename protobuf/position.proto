@@ -13,3 +13,11 @@ message Position {
     uint64 timestamp_ms     = 2;
     Data3d position_m       = 3;
 }
+
+message AvailableStatus {
+    bool ready  = 1;
+}
+
+service PositionRPCServer {
+    rpc SendPosition(AvailableStatus) returns (stream Position) {}
+}

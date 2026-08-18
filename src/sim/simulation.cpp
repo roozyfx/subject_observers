@@ -3,6 +3,7 @@
 #include <chrono>
 #include <concepts>
 #include <memory>
+#include <string>
 #include <thread>
 
 #include "utils/config.h"
@@ -23,13 +24,13 @@ Simulation<T>::Simulation(Player<T>& player, const size_t num_sensors)
 }
 
 template <std::floating_point T>
-void Simulation<T>::StartSimulation(zmq::context_t* ctx) {
+void Simulation<T>::StartSimulation(NetPublisher& net_publisher) {
   if (worker_.joinable())
     throw std::logic_error("Simulation has already started!");
 
-  worker_ = std::jthread([this, ctx](std::stop_token stoken) {
+  worker_ = std::jthread([this, &net_publisher](std::stop_token stoken) {
     try {
-      RunSimulation(ctx, stoken);
+      RunSimulation(net_publisher, stoken);
     } catch (...) {
       worker_exception_ = std::current_exception();
     }
@@ -37,12 +38,8 @@ void Simulation<T>::StartSimulation(zmq::context_t* ctx) {
 }
 
 template <std::floating_point T>
-void Simulation<T>::RunSimulation(zmq::context_t* ctx, std::stop_token stoken) {
-  // Setup publisher
-  zmq::socket_t sensors_publisher(*ctx, zmq::socket_type::pub);
-
-  sensors_publisher.bind(net_address_);
-
+void Simulation<T>::RunSimulation(NetPublisher& net_publisher,
+                                  std::stop_token stoken) {
   // Give the subscribers a chance to connect, so they don't lose any messages
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
@@ -63,8 +60,7 @@ void Simulation<T>::RunSimulation(zmq::context_t* ctx, std::stop_token stoken) {
 
           std::string msg_buffer;
           if (msg.SerializeToString(&msg_buffer))
-            sensors_publisher.send(zmq::buffer(msg_buffer),
-                                   zmq::send_flags::none);
+            net_publisher.Send(msg_buffer);
         }
       }
     }

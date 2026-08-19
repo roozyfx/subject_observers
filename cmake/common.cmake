@@ -25,7 +25,7 @@ MACRO(set_platform_specific_options target)
     elseif(CMAKE_SYSTEM_NAME MATCHES Windows)
         target_compile_options(${target} PRIVATE
             /W4 /permissive-
-            $<$<CONFIG:Debug>:/Od;/Zi;/fsanitize=address,undefined>
+            $<$<CONFIG:Debug>:/Od;/Zi;/fsanitize=address>
             $<$<CONFIG:Release>:/O2;/DNDEBUG>
         )
 

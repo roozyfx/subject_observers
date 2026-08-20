@@ -9,6 +9,16 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+# To enable clangd to find the compile_commands.json file
+if(CMAKE_EXPORT_COMPILE_COMMANDS)
+  file(CREATE_LINK
+    ${CMAKE_BINARY_DIR}/compile_commands.json
+    ${CMAKE_SOURCE_DIR}/compile_commands.json
+    SYMBOLIC
+  )
+endif()
+
 add_subdirectory(src)
 add_subdirectory(apps)
 
